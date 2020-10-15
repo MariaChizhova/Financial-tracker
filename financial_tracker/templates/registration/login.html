@@ -1,0 +1,13 @@
+{% if user.is_authenticated %}
+	<p>User already  authenticated</p>
+{% else %}
+{% block content %}
+	<h1>Login</h1>
+	<form method="post">
+	{% csrf_token %}
+	{{ form.as_p }}
+	<p>Don't have an accoount? Create one <a href="/signup">here</a></p>
+	<button type="submit" class="btn btn-success">Login</button>
+	</form>
+{% endblock %}
+{% endif %}
