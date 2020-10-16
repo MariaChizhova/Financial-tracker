@@ -21,21 +21,6 @@ def signup(request):
     return render(request, 'signup.html', {'form': form})
 
 
-def get_currencies_names():
-    names = []
-    for c in Currency.objects.all():
-        names.append(c.name)
-    return names
-
-
-# TODO maybe make get_model_names
-def get_purses_names(user):
-    names = []
-    for c in Purse.objects.filter(user=user):
-        names.append(c.name)
-    return names
-
-
 def choose_purse(request):
     if request.method == 'POST':
         if request.POST['purse_name']:
@@ -46,8 +31,9 @@ def choose_purse(request):
             purse.save()
         else:
             # TODO urls(/transactions/purse_id)
-            return redirect(f'/transactions/{Purse.objects.filter(name=request.POST["purse"])[0].id}')
+
+            return redirect(f'/transactions/{Purse.get_purse_id(request.POST["purse"], request.user)}')
     print(request.user)
-    args = {'currencies_names': get_currencies_names(),
-            'purses_names': get_purses_names(request.user)}
+    args = {'currencies_names': Currency.names_list(),
+            'purses_names': Purse.names_list(user=request.user)}
     return render(request, 'choose_purse.html', args)
