@@ -122,3 +122,7 @@ STATIC_URL = '/static/'
 
 LOGIN_REDIRECT_URL = "/choose_purse"
 LOGOUT_REDIRECT_URL = "/login"
+
+FIXTURE_DIRS = (
+   os.path.join(BASE_DIR, 'fixtures'),
+)

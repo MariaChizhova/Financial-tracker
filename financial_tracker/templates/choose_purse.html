@@ -1,0 +1,24 @@
+{% if user.is_authenticated %}
+{% block content %}
+    <h1>Choose purse</h1>
+    <form method="POST">
+        {% csrf_token %}
+        {% for n in purses_names %}
+            <div>
+            <input type="radio" value={{ n }} name="purse" />
+            <label for={{ n }}>{{ n }}</label>
+            </div>
+        {% endfor %}
+        <h2>Create purse</h2>
+        <input type="text" name="purse_name"/>
+        <select name="currency">
+            {% for n in currencies_names %}
+                <option value={{ n }}>{{ n }}</option>
+            {% endfor %}
+        </select>
+        <input type="submit"/>
+    </form>
+{% endblock %}
+{% else %}
+    <p>User doesn't authenticated</p>
+{% endif %}
