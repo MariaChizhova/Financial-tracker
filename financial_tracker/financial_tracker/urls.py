@@ -23,4 +23,5 @@ urlpatterns = [
     path('', include('django.contrib.auth.urls')),
     url('signup/', main_views.signup),
     url('choose_purse/', main_views.choose_purse),
+    url('display_table/', main_views.display_table),
 ]
