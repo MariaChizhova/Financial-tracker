@@ -2,8 +2,12 @@ from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import render, redirect
 import json as simplejson
+import csv
+import io
 
-from main.models import Purse, Currency
+from main.models import Purse, Currency, Transaction
+
+from django import forms
 
 
 def signup(request):
@@ -31,26 +35,46 @@ def choose_purse(request):
             purse.user = request.user
             purse.save()
         else:
-            # TODO urls(/transactions/purse_id)
-
             return redirect(f'/transactions/{Purse.get_purse_id(request.POST["purse"], request.user)}')
-    print(request.user)
+
     args = {'currencies_names': Currency.names_list(),
             'purses_names': Purse.names_list(user=request.user)}
     return render(request, 'choose_purse.html', args)
 
 
-def display_table(request):
-    List = [
-        {'id': 1, 'date': "05/09/1842", 'merchant': "APPLE.COM", 'amount': "20", 'category': "TECH"},
-        {'id': 2, 'date': "18/02/2000", 'merchant': "APPLE.COM", 'amount': "212", 'category': "TECH"},
-        {'id': 3, 'date': "23/05/1945", 'merchant': "YANDEX LAVKA", 'amount': "3", 'category': "FOOD"},
-        {'id': 4, 'date': "29/04/2011", 'merchant': "AMAZON.CO.UK", 'amount': "567", 'category': "-"},
-        {'id': 5, 'date': "29/04/2011", 'merchant': "METRO", 'amount': "8", 'category': "TRANSPORT"},
-        {'id': 6, 'date': "14/07/2020", 'merchant': "YANDEX TAXI", 'amount': "35", 'category': "TRANSPORT"},
-        {'id': 7, 'date': "01/06/2015", 'merchant': "BOLT", 'amount': "24.34", 'category': "TRANSPORT"},
-        {'id': 8, 'date': "02/07/2013", 'merchant': "SAMOKAT", 'amount': "34.11", 'category': "FOOD"},
-        {'id': 9, 'date': "01/06/2005", 'merchant': "GOOGLE", 'amount': "456", 'category': "-"},
-        {'id': 10, 'date': "18/", 'merchant': "GQT Wabash Landing 9", 'amount': "10", 'category': "CINEMA"},
-    ]
-    return render(request, 'display_table.html', {'tabledata':  simplejson.dumps(List)})
+# type(table): [{id, date, merchant, amount}]
+def display_table(request, table: list):
+    return render(request, 'display_table.html', {'tabledata':  simplejson.dumps(table)})
+
+
+def transactions(request, purse_id):
+    return display_table(request, Transaction.get_by_purse_id(purse_id))
+
+
+def handle_csv_file(file, latest_id):
+    transactions = file.read().decode('utf-8').split('\r\n')
+    dict_list = []
+    id = latest_id
+    for transaction in transactions:
+        id += 1
+        fields = transaction.split(',')
+        if len(fields) < 4:
+            continue
+        dict_list.append({'id': id,
+                          'date': fields[0],
+                          'merchant': fields[3],
+                          'amount': fields[2]})
+    return dict_list
+
+
+def upload_transactions(request, purse_id):
+    if request.method == 'POST':
+        try:
+            latest_id = Transaction.objects.filter(purse=purse_id).latest('id').id
+        except:
+            latest_id = 0
+
+        dict_list = handle_csv_file(request.FILES['input_file'], latest_id)
+        return display_table(request, dict_list)
+
+    return render(request, 'upload_transactions.html')

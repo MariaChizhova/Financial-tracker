@@ -1,0 +1,12 @@
+{% if user.is_authenticated %}
+    {% block content %}
+    <h1>Upload transactions</h1>
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input name="input_file" type="file" accept=".csv">
+        <button id="upload">Upload</button>
+    </form>
+    {% endblock %}
+{% else %}
+    <p>User doesn't authenticated</p>
+{% endif %}

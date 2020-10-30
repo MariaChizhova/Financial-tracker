@@ -24,4 +24,6 @@ urlpatterns = [
     url('signup/', main_views.signup),
     url('choose_purse/', main_views.choose_purse),
     url('display_table/', main_views.display_table),
+    path('transactions/<int:purse_id>', main_views.transactions),
+    path('upload_transactions/<int:purse_id>', main_views.upload_transactions),
 ]

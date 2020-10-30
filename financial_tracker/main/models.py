@@ -1,5 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
+import datetime
+import json
+from django.core.serializers.json import DjangoJSONEncoder
 
 
 class Currency(models.Model):
@@ -38,5 +41,19 @@ class Category(models.Model):
 
 class Transaction(models.Model):
     purse = models.ForeignKey(Purse, on_delete=models.CASCADE)
+    # category = models.ForeignKey(Category, default=0, on_delete=models.CASCADE)
+    category = models.TextField()
+    date = models.DateField(default=datetime.date.today)
     amount = models.IntegerField()
     merchant = models.TextField()
+
+    @staticmethod
+    def get_by_purse_id(purse_id):
+        query = Transaction.objects.filter(purse=purse_id)
+        table = []
+        for transaction in query:
+            table.append({'id': transaction.id,
+                          'date': json.dumps(transaction.date, cls=DjangoJSONEncoder),
+                          'merchant': transaction.merchant,
+                          'amount': transaction.amount})
+        return table
