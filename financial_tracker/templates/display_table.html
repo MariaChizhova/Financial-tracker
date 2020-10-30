@@ -7,16 +7,16 @@
             <div id="example-table"></div>
             <script>
                 var table = new Tabulator("#example-table", {
-                    height: 250,
+                    height: '100%',
                     pagination: "local",
-                    paginationSize: 8,
+                    paginationSize: 36,
                     movableColumns: true,
                     layout: "fitColumns",
                     columns: [
-                        {title: "Date", field: "date", sorter: "date", align: "center", width: 476},
-                        {title: "Merchant", field: "merchant", width: 476},
-                        {title: "Amount", field: "amount", width: 475},
-                        {title: "Category", field: "category", width: 475},
+                        {title: "Date", field: "date", sorter: "date", align: "center", width: '25%'},
+                        {title: "Merchant", field: "merchant", width: '25%'},
+                        {title: "Amount", field: "amount", width: '25%'},
+                        {title: "Category", field: "category", width: '25%'},
                     ],
                     rowClick: function (e, row) {
                         alert("Row " + row.getData().id + " Clicked!!!!");
