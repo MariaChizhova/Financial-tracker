@@ -78,3 +78,7 @@ def upload_transactions(request, purse_id):
         return display_table(request, dict_list)
 
     return render(request, 'upload_transactions.html')
+
+
+def categories(request):
+    return render(request, 'categories.html')

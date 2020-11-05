@@ -1,0 +1,69 @@
+{% if user.is_authenticated %}
+    {% block content %}
+        <h1>Categories</h1>
+        <form method="POST">
+            {% csrf_token %}
+            <link rel="stylesheet"
+                  href="https://cdnjs.cloudflare.com/ajax/libs/tabulator/4.8.0/css/tabulator_midnight.min.css">
+            <link rel="stylesheet" href="lib/style.css">
+            <script src="https://code.jquery.com/jquery-3.5.1.js"
+                    integrity="sha256-WpOohJOqMqqyKL9FccASB9O0KwACQJpFTUBLTYOVvVU=" crossorigin="anonymous">
+            </script>
+            <script type="text/javascript"
+                    src="https://cdnjs.cloudflare.com/ajax/libs/tabulator/4.8.0/js/tabulator.min.js"></script>
+            <script src="lib/script.js"></script>
+            <div id="categories-table"></div>
+            <div>
+                <button id="save">Save</button>
+               <!--   <button id="add">Add</button> -->
+            </div>
+            <script>
+                document.getElementById("save").addEventListener("click", function () {
+                    var json = JSON.stringify(tabledata);
+                    document.write(json);
+                });
+               /*  document.getElementById("add").addEventListener("click", function () {
+                    table.addRow({category: ""}, true);
+                }); */
+                var tabledata = [
+                    {
+                        category: "Еда", _children: [
+                            {category: "Кафе"},
+                            {category: "Алкоголь"},
+                            {category: "Доставка"},
+                        ]
+                    },
+                    {
+                        category: "Регулярные платежи", _children: [
+                            {category: "Аренда"},
+                            {category: "Комуналка"},
+                            {category: "Связь"},
+                        ]
+                    }
+                ];
+
+                var table = new Tabulator("#categories-table", {
+                    addRowPos: "bottom",
+                    height: '90%',
+                    width: '100%',
+                    data: tabledata,
+                    dataTree: true,
+                    rowDblClick: function (e, row) {
+                        row.addTreeChild({category: ""});
+                        tabledata.row.addTreeChild({category: ""});
+                    },
+                    //   cellClick: function (e, cell) {
+                    //     cell.getRow().delete();
+                    //  },
+                    columns: [{
+                        cellClick: function (e, cell) {
+                            cell.getRow().toggleSelect();
+                        }
+                    }, {title: "Category", field: "category", width: '25%', editor: "input"}],
+                });
+            </script>
+        </form>
+    {% endblock %}
+{% else %}
+    <p>User doesn't authenticated</p>
+{% endif %}

@@ -26,4 +26,5 @@ urlpatterns = [
     url('display_table/', main_views.display_table),
     path('transactions/<int:purse_id>', main_views.transactions),
     path('upload_transactions/<int:purse_id>', main_views.upload_transactions),
+    url('categories/', main_views.categories),
 ]
