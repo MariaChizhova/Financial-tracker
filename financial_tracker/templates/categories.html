@@ -3,64 +3,105 @@
         <h1>Categories</h1>
         <form method="POST">
             {% csrf_token %}
-            <link rel="stylesheet"
-                  href="https://cdnjs.cloudflare.com/ajax/libs/tabulator/4.8.0/css/tabulator_midnight.min.css">
-            <link rel="stylesheet" href="lib/style.css">
-            <script src="https://code.jquery.com/jquery-3.5.1.js"
-                    integrity="sha256-WpOohJOqMqqyKL9FccASB9O0KwACQJpFTUBLTYOVvVU=" crossorigin="anonymous">
-            </script>
-            <script type="text/javascript"
-                    src="https://cdnjs.cloudflare.com/ajax/libs/tabulator/4.8.0/js/tabulator.min.js"></script>
-            <script src="lib/script.js"></script>
-            <div id="categories-table"></div>
-            <div>
-                <button id="save">Save</button>
-               <!--   <button id="add">Add</button> -->
-            </div>
-            <script>
-                document.getElementById("save").addEventListener("click", function () {
-                    var json = JSON.stringify(tabledata);
-                    document.write(json);
-                });
-               /*  document.getElementById("add").addEventListener("click", function () {
-                    table.addRow({category: ""}, true);
-                }); */
-                var tabledata = [
-                    {
-                        category: "Еда", _children: [
-                            {category: "Кафе"},
-                            {category: "Алкоголь"},
-                            {category: "Доставка"},
-                        ]
-                    },
-                    {
-                        category: "Регулярные платежи", _children: [
-                            {category: "Аренда"},
-                            {category: "Комуналка"},
-                            {category: "Связь"},
-                        ]
-                    }
-                ];
+            <head>
+                <style>
 
-                var table = new Tabulator("#categories-table", {
-                    addRowPos: "bottom",
-                    height: '90%',
-                    width: '100%',
-                    data: tabledata,
-                    dataTree: true,
-                    rowDblClick: function (e, row) {
-                        row.addTreeChild({category: ""});
-                        tabledata.row.addTreeChild({category: ""});
-                    },
-                    //   cellClick: function (e, cell) {
-                    //     cell.getRow().delete();
-                    //  },
-                    columns: [{
-                        cellClick: function (e, cell) {
-                            cell.getRow().toggleSelect();
-                        }
-                    }, {title: "Category", field: "category", width: '25%', editor: "input"}],
+                    ul, #myUL {
+                        list-style-type: none;
+                    }
+
+                    .style {
+                        background-color: slategrey;
+                        color: white;
+                        border: 1px solid black;
+                        padding: 5px;
+                        width: 97%;
+                    }
+
+                    .caret {
+                        cursor: pointer;
+                        -webkit-user-select: none;
+                        -moz-user-select: none;
+                        -ms-user-select: none;
+                        user-select: none;
+                    }
+
+                    .caret::before {
+                        content: "\25B6";
+                        color: black;
+                        display: inline-block;
+                        margin-right: 6px;
+                    }
+
+                    .caret-down::before {
+                        -ms-transform: rotate(90deg);
+                        -webkit-transform: rotate(90deg);
+                    ' transform: rotate(90 deg);
+                    }
+
+
+                    .nested {
+                        display: none;
+                    }
+
+                    .active {
+                        display: block;
+                    }
+                </style>
+            </head>
+            <div id="container"></div>
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+            <script>
+                const build_tree = (
+                    data = [],
+                    {idKey = 'id', parentKey = 'parentId', childrenKey = 'children'} = {}
+                ) => {
+                    const tree = [];
+                    const childrenOf = {};
+                    data.forEach((item) => {
+                        const {[idKey]: id, [parentKey]: parentId = 0} = item;
+                        childrenOf[id] = childrenOf[id] || [];
+                        item[childrenKey] = childrenOf[id];
+                        parentId ? (childrenOf[parentId] = childrenOf[parentId] || []).push(item) : tree.push(item);
+                    });
+                    return tree;
+                }
+                tree = build_tree({{data|safe}}, {idKey: 'id', parentKey: 'parent'});
+                console.log(tree);
+
+                function actualFunction(index, item) {
+                    return "<ul>" + "<li>" + "<span class=\"caret\">" + item.name + "</li>" + "</span>" + "<ul class=\"nested\">" + "</ul>";
+                }
+
+                var table = "<ul class=\"myUL\">" + "<ul class=\"style\">";
+
+                function recursiveFunction(index, item) {
+                    table += "<ul>" + "<li>" + "<span class=\"caret\">" + item.name + "</span>" + "<ul class=\"nested\">" + "</li>"
+                    var value = item.children;
+                    if (value instanceof Object) {
+                        $.each(value, function (index, item) {
+                            var val = recursiveFunction(index, item);
+                            if (val)
+                                table += tmp;
+                        });
+                    }
+                    table += "</ul>" + "</ul>";
+                }
+
+                $.each(tree, function (index, item) {
+                    recursiveFunction(index, item);
                 });
+
+                $("#container").append(table);
+
+
+                var toggler = document.getElementsByClassName("caret");
+                for (var i = 0; i < toggler.length; i++) {
+                    toggler[i].addEventListener("click", function () {
+                        this.parentElement.querySelector(".nested").classList.toggle("active");
+                        this.classList.toggle("caret-down");
+                    });
+                }
             </script>
         </form>
     {% endblock %}

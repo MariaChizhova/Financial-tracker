@@ -44,7 +44,7 @@ def choose_purse(request):
 
 # type(table): [{id, date, merchant, amount}]
 def display_table(request, table: list):
-    return render(request, 'display_table.html', {'tabledata':  simplejson.dumps(table)})
+    return render(request, 'display_table.html', {'tabledata': simplejson.dumps(table)})
 
 
 def transactions(request, purse_id):
@@ -80,5 +80,7 @@ def upload_transactions(request, purse_id):
     return render(request, 'upload_transactions.html')
 
 
-def categories(request):
-    return render(request, 'categories.html')
+def categories(request, data: list):
+    # data = [{"id": "1", "name": "Одежда", "parent": ""},
+    #         {"id": "2", "name": "Обувь", "parent": "1"}]
+    return render(request, 'categories.html', {'data': data})
