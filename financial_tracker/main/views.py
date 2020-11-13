@@ -1,11 +1,16 @@
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import UserCreationForm
+from django.http import HttpResponse
 from django.shortcuts import render, redirect
 import json as simplejson
+from django.core.files import File
 import csv
 import io
 
-from main.models import Purse, Currency, Transaction
+from django.views.decorators.csrf import csrf_exempt, csrf_protect
+
+from main.models import Purse, Currency, Transaction, Category
+from django.contrib.auth.models import User
 
 from django import forms
 
@@ -44,7 +49,13 @@ def choose_purse(request):
 
 # type(table): [{id, date, merchant, amount}]
 def display_table(request, table: list):
-    return render(request, 'display_table.html', {'tabledata': simplejson.dumps(table)})
+    with open(f"data/categories/{request.user.id}.txt", "r") as file:
+        dj_file = File(file)
+        categories = []
+        for line in dj_file:
+            categories.append(line[:-1])
+
+    return render(request, 'display_table.html', {'tabledata': simplejson.dumps(table), 'categories': categories})
 
 
 def transactions(request, purse_id):
@@ -80,7 +91,56 @@ def upload_transactions(request, purse_id):
     return render(request, 'upload_transactions.html')
 
 
-def categories(request, data: list):
-    # data = [{"id": "1", "name": "Одежда", "parent": ""},
-    #         {"id": "2", "name": "Обувь", "parent": "1"}]
+def categories(request):
+    data = []
+    for c in Category.objects.filter(user=request.user):
+        c_dict = {"id": str(c.id), "name": str(c.name), "parent": ""}
+        if c.parent:
+            c_dict["parent"] = str(c.parent.id)
+        data.append(c_dict)
+
+    if request.method == 'POST':
+
+        # add category
+        if 'new_category' in request.POST:
+            if not request.POST['new_category']:
+                return redirect('/categories')
+
+            category = Category()
+            category.user = request.user
+            category.name = request.POST['new_category']
+
+            if 'parent_category' in request.POST:
+                category.parent = Category.objects.get(user=request.user,
+                                                       name=request.POST['parent_category'])
+            category.save()
+
+        # edit category
+        elif 'old_name' in request.POST:
+            if not request.POST['old_name']:
+                return redirect('/categories')
+
+            if request.POST['new_name']:
+                category = Category.objects.get(user=request.user,
+                                                name=request.POST['old_name'])
+                category.name = request.POST['new_name']
+                category.save()
+
+        # remove category
+        elif 'remove_category' in request.POST:
+            Category.objects.get(user=request.user,
+                                 name=request.POST['remove_category']).delete()
+        return redirect('/categories')
+
     return render(request, 'categories.html', {'data': data})
+
+
+@csrf_exempt
+def save_categories(request):
+    print('sas')
+    if request.is_ajax():
+        if request.method == 'POST':
+            with open(f"data/categories/{request.user.id}.txt", "wb") as file:
+                dj_file = File(file)
+                dj_file.write(request.body)
+    return HttpResponse("OK")

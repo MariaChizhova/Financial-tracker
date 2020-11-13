@@ -36,7 +36,8 @@ class Purse(models.Model):
 
 class Category(models.Model):
     name = models.TextField()
-    parent = models.ForeignKey('self', on_delete=models.CASCADE)
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, default="")
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
 
 class Transaction(models.Model):
