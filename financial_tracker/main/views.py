@@ -53,7 +53,8 @@ def display_table(request, table: list):
         dj_file = File(file)
         categories = []
         for line in dj_file:
-            categories.append(line[:-1])
+            categories.append({"label": line[:-1],
+                               "value": line[:-1].replace('&ensp;', '')})
 
     return render(request, 'display_table.html', {'tabledata': simplejson.dumps(table), 'categories': categories})
 
