@@ -1,4 +1,5 @@
-<head>
+{% extends 'base.html' %}
+{% block content %}
     <style>
 
         ul, #myUL {
@@ -43,11 +44,9 @@
             display: block;
         }
     </style>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-</head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.0/jquery.min.js"></script>
 
-{% if user.is_authenticated %}
-    {% block content %}
+    {% if user.is_authenticated %}
         <h1>Categories</h1>
         <div id="container"></div>
         <form method="POST">
@@ -73,89 +72,90 @@
             <input type="submit"/>
         </form>
 
-    {% endblock %}
-{% else %}
-    <p>User doesn't authenticated</p>
-{% endif %}
+    {% else %}
+        <p>User doesn't authenticated</p>
+    {% endif %}
 
-<script>
-    var depth = 0;
-    var array_tree = [];
+    <script>
+        var depth = 0;
+        var array_tree = [];
 
-    const build_tree = (
-        data = [],
-        {idKey = 'id', parentKey = 'parentId', childrenKey = 'children'} = {}
-    ) => {
-        const tree = [];
-        const childrenOf = {};
-        data.forEach((item) => {
-            const {[idKey]: id, [parentKey]: parentId = 0} = item;
-            childrenOf[id] = childrenOf[id] || [];
-            item[childrenKey] = childrenOf[id];
-            parentId ? (childrenOf[parentId] = childrenOf[parentId] || []).push(item) : tree.push(item);
+        const build_tree = (
+            data = [],
+            {idKey = 'id', parentKey = 'parentId', childrenKey = 'children'} = {}
+        ) => {
+            const tree = [];
+            const childrenOf = {};
+            data.forEach((item) => {
+                const {[idKey]: id, [parentKey]: parentId = 0} = item;
+                childrenOf[id] = childrenOf[id] || [];
+                item[childrenKey] = childrenOf[id];
+                parentId ? (childrenOf[parentId] = childrenOf[parentId] || []).push(item) : tree.push(item);
+            });
+            return tree;
+        }
+        tree = build_tree({{data|safe}}, {idKey: 'id', parentKey: 'parent'});
+        console.log(tree);
+
+        function actualFunction(index, item) {
+            return "<ul>" + "<li>" + "<span class=\"caret\">" + item.name + "</li>" + "</span>" + "<ul class=\"nested\">" + "</ul>";
+        }
+
+        var table = "<ul class=\"myUL\">" + "<ul class=\"style\">";
+
+        function recursiveFunction(index, item) {
+            array_tree.push({name: item.name, depth: depth})
+            depth += 1;
+
+            table += "<ul>" + "<li>" + "<span class=\"caret\">" + item.name + "</span>" + "<ul class=\"nested\">" + "</li>"
+            var value = item.children;
+            if (value instanceof Object) {
+                $.each(value, function (index, item) {
+                    var val = recursiveFunction(index, item);
+                    if (val)
+                        table += tmp;
+                });
+            }
+            table += "</ul>" + "</ul>";
+            depth -= 1;
+        }
+
+        $.each(tree, function (index, item) {
+            recursiveFunction(index, item);
         });
-        return tree;
-    }
-    tree = build_tree({{data|safe}}, {idKey: 'id', parentKey: 'parent'});
-    console.log(tree);
 
-    function actualFunction(index, item) {
-        return "<ul>" + "<li>" + "<span class=\"caret\">" + item.name + "</li>" + "</span>" + "<ul class=\"nested\">" + "</ul>";
-    }
+        $("#container").append(table);
 
-    var table = "<ul class=\"myUL\">" + "<ul class=\"style\">";
-
-    function recursiveFunction(index, item) {
-        array_tree.push({name: item.name, depth: depth})
-        depth += 1;
-
-        table += "<ul>" + "<li>" + "<span class=\"caret\">" + item.name + "</span>" + "<ul class=\"nested\">" + "</li>"
-        var value = item.children;
-        if (value instanceof Object) {
-            $.each(value, function (index, item) {
-                var val = recursiveFunction(index, item);
-                if (val)
-                    table += tmp;
+        var toggler = document.getElementsByClassName("caret");
+        for (var i = 0; i < toggler.length; i++) {
+            toggler[i].addEventListener("click", function () {
+                this.parentElement.querySelector(".nested").classList.toggle("active");
+                this.classList.toggle("caret-down");
             });
         }
-        table += "</ul>" + "</ul>";
-        depth -= 1;
-    }
 
-    $.each(tree, function (index, item) {
-        recursiveFunction(index, item);
-    });
+        var tab_categories;
 
-    $("#container").append(table);
+        function create_select_element(array_tree, element_id, title) {
+            tab_categories = "";
+            $('#' + element_id).append('<option value="" disabled selected>' + title + '</option>');
+            array_tree.forEach(function (el) {
+                var tab_category = "&ensp;&ensp;".repeat(el.depth) + el.name;
+                tab_categories += (tab_category + "\n");
+                $('#' + element_id).append('<option value="' + el.name + '">' + tab_category + '</option>');
+            });
 
+        }
 
-    var toggler = document.getElementsByClassName("caret");
-    for (var i = 0; i < toggler.length; i++) {
-        toggler[i].addEventListener("click", function () {
-            this.parentElement.querySelector(".nested").classList.toggle("active");
-            this.classList.toggle("caret-down");
+        create_select_element(array_tree, "parent_category", "select parent category");
+        create_select_element(array_tree, "old_name", "select category to rename");
+        create_select_element(array_tree, "remove_category", "select category to remove");
+
+        $.ajax({
+            url: '/save_cat/',
+            type: 'POST',
+            data: tab_categories,
+            dataType: 'text',
         });
-    }
-
-    var tab_categories;
-    function create_select_element(array_tree, element_id, title) {
-        tab_categories = "";
-        $('#' + element_id).append('<option value="" disabled selected>' + title + '</option>');
-        array_tree.forEach( function(el) {
-            var tab_category = "&ensp;&ensp;".repeat(el.depth) + el.name;
-            tab_categories += (tab_category + "\n");
-            $('#' + element_id).append('<option value="' + el.name + '">' + tab_category + '</option>');
-        });
-
-    }
-    create_select_element(array_tree, "parent_category", "select parent category");
-    create_select_element(array_tree, "old_name", "select category to rename");
-    create_select_element(array_tree, "remove_category", "select category to remove");
-
-    $.ajax({
-        url: '/save_cat/',
-        type: 'POST',
-        data: tab_categories,
-        dataType: 'text',
-    });
-</script>
+    </script>
+{% endblock %}
