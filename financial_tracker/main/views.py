@@ -52,6 +52,8 @@ def display_table(request, table: list):
     with open(f"data/categories/{request.user.id}.txt", "r") as file:
         dj_file = File(file)
         categories = []
+        for line in table:
+            line['amount'] = float(line['amount'].strip(' ').strip('"'))
         for line in dj_file:
             categories.append({"label": line[:-1],
                                "value": line[:-1].replace('&ensp;', '')})

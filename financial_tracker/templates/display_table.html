@@ -9,18 +9,41 @@
             <link href="https://unpkg.com/tabulator-tables@4.8.4/dist/css/tabulator_simple.min.css" rel="stylesheet">
             {#            <script type="text/javascript"#}
             {#                    src="https://unpkg.com/tabulator-tables@4.0.5/dist/js/tabulator.min.js"></script>#}
+            <div>
+                <select id="filter-field">
+                    <option></option>
+                    <option value="date">Date</option>
+                    <option value="merchant">Merchant</option>
+                    <option value="amount">Amount</option>
+                    <option value="category">Category</option>
+                </select>
+
+                <select id="filter-type">
+                    <option value="=">=</option>
+                    <option value="<"><</option>
+                    <option value="<="><=</option>
+                    <option value=">">></option>
+                    <option value=">=">>=</option>
+                    <option value="!=">!=</option>
+                </select>
+
+                <input id="filter-value" type="text" placeholder="value to filter">
+            </div>
             <div id="example-table"></div>
+            <div>
+                <button id="save">Save</button>
+            </div>
             <script>
                 var table = new Tabulator("#example-table", {
                     height: '90%',
                     pagination: "local",
-                    paginationSize: 36,
+                    paginationSize: 30,
                     movableColumns: true,
                     layout: "fitColumns",
                     columns: [
                         {title: "Date", field: "date", sorter: "date", align: "center"},
                         {title: "Merchant", field: "merchant"},
-                        {title: "Amount", field: "amount"},
+                        {title: "Amount", field: "amount", bottomCalc: "sum"},
                         {
                             title: "Category",
                             field: "category",
@@ -30,10 +53,31 @@
                     ],
                 });
                 table.setData({{tabledata|safe}});
+                var fieldEl = document.getElementById("filter-field");
+                var typeEl = document.getElementById("filter-type");
+                var valueEl = document.getElementById("filter-value");
+
+                function updateFilter() {
+                    var filterVal = fieldEl.options[fieldEl.selectedIndex].value;
+                    var typeVal = typeEl.options[typeEl.selectedIndex].value;
+
+                    var filter = filterVal == "function" ? customFilter : filterVal;
+                    if (filterVal == "function") {
+                        typeEl.disabled = true;
+                        valueEl.disabled = true;
+                    } else {
+                        typeEl.disabled = false;
+                        valueEl.disabled = false;
+                    }
+
+                    if (filterVal) {
+                        table.setFilter(filter, typeVal, valueEl.value);
+                    }
+                }
+                document.getElementById("filter-field").addEventListener("change", updateFilter);
+                document.getElementById("filter-type").addEventListener("change", updateFilter);
+                document.getElementById("filter-value").addEventListener("keyup", updateFilter);
             </script>
-            <div>
-                <button id="save">Save</button>
-            </div>
         </form>
     {% endblock %}
 {% else %}
