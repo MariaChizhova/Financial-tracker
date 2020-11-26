@@ -4,15 +4,10 @@ from django.http import HttpResponse
 from django.shortcuts import render, redirect
 import json as simplejson
 from django.core.files import File
-import csv
-import io
 
-from django.views.decorators.csrf import csrf_exempt, csrf_protect
+from django.views.decorators.csrf import csrf_exempt
 
 from main.models import Purse, Currency, Transaction, Category
-from django.contrib.auth.models import User
-
-from django import forms
 
 
 def signup(request):
@@ -147,3 +142,54 @@ def save_categories(request):
                 dj_file = File(file)
                 dj_file.write(request.body)
     return HttpResponse("OK")
+
+
+def display_charts(request):
+    queryset_categories = [
+        {
+            "category": "Food",
+            "total_sum": 20345
+        },
+        {
+            "category": "Transport",
+            "total_sum": 3540
+        },
+        {
+            "category": "Clothes",
+            "total_sum": 12670
+        },
+        {
+            "category": "Medicine",
+            "total_sum": 6230
+        }]
+
+    labels = []
+    data = []
+    for item in queryset_categories:
+        labels.append(item['category'])
+        data.append(item['total_sum'])
+
+    queryset_months = [
+        {
+            "month": "September",
+            "total_sum": 35480
+        },
+        {
+            "month": "October",
+            "total_sum": 45674
+        },
+        {
+            "month": "November",
+            "total_sum": 29456
+        },
+        {
+            "month": "December",
+            "total_sum": 23345
+        }]
+
+    months = []
+    total = []
+    for item in queryset_months:
+        months.append(item['month'])
+        total.append(item['total_sum'])
+    return render(request, 'display_charts.html', {'labels': labels, 'data': data, 'months': months, 'total': total})
