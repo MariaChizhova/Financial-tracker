@@ -36,15 +36,18 @@
 
         i++;
     }
+    var data = {{ data|safe }};
+    var categories = Object.keys(data);
+
     var config = {
         type: 'pie',
         data: {
             datasets: [{
-                data: {{ data|safe }},
+                data: {{ total_sum|safe }},
                 backgroundColor: graphColors,
                 label: 'total_sum'
             }],
-            labels: {{ labels|safe }}
+            labels: categories
         },
         options: {
             responsive: true,
@@ -64,20 +67,43 @@
         var $BarChart = $("#bar-chart");
 
         var ctx = $BarChart[0].getContext("2d");
-
         new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: {{ months|safe }},
                 datasets: [{
-                    label: 'total',
-                    backgroundColor: 'blue',
-                    data: {{ total|safe }}
-                }]
+                    label: categories[0],
+                    data: data[categories[0]],
+                    backgroundColor: graphColors[0],
+                },
+                    {
+                        label: categories[1],
+                        data: data[categories[1]],
+                        backgroundColor: graphColors[1],
+                    },
+                    {
+                        label: categories[2],
+                        data: data[categories[2]],
+                        backgroundColor: graphColors[2],
+                    },
+                    {
+                        label: categories[3],
+                        data: data[categories[3]],
+                        backgroundColor: graphColors[3],
+                    },
+                ]
             },
             options: {
                 responsive: true,
                 legend: false,
+                scales: {
+                    xAxes: [{
+                        stacked: true
+                    }],
+                    yAxes: [{
+                        stacked: true
+                    }]
+                }
             }
         });
 

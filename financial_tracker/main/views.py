@@ -145,51 +145,17 @@ def save_categories(request):
 
 
 def display_charts(request):
-    queryset_categories = [
-        {
-            "category": "Food",
-            "total_sum": 20345
-        },
-        {
-            "category": "Transport",
-            "total_sum": 3540
-        },
-        {
-            "category": "Clothes",
-            "total_sum": 12670
-        },
-        {
-            "category": "Medicine",
-            "total_sum": 6230
-        }]
+    months = ["January", "February", "March", "April", "May", "June",
+              "July", "August", "September", "October", "November", "December"]
+    queryset_categories = {"Food": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+                           "Transport": [12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1],
+                           "Clothes": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+                           "Medicine": [12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1], }
 
-    labels = []
-    data = []
-    for item in queryset_categories:
-        labels.append(item['category'])
-        data.append(item['total_sum'])
+    total_sum = []
+    for item in queryset_categories.values():
+        total_sum.append(sum(item))
 
-    queryset_months = [
-        {
-            "month": "September",
-            "total_sum": 35480
-        },
-        {
-            "month": "October",
-            "total_sum": 45674
-        },
-        {
-            "month": "November",
-            "total_sum": 29456
-        },
-        {
-            "month": "December",
-            "total_sum": 23345
-        }]
-
-    months = []
-    total = []
-    for item in queryset_months:
-        months.append(item['month'])
-        total.append(item['total_sum'])
-    return render(request, 'display_charts.html', {'labels': labels, 'data': data, 'months': months, 'total': total})
+    return render(request, 'display_charts.html', {'total_sum': total_sum,
+                                                   'months': months, 'categories': categories,
+                                                   'data': queryset_categories})
