@@ -32,7 +32,6 @@
             <div id="example-table"></div>
             <div>
                 <button id="save">Save</button>
-                <button id="filter-clear">Clear</button>
             </div>
             <script>
                 var table = new Tabulator("#example-table", {
@@ -44,7 +43,7 @@
                     columns: [
                         {title: "Date", field: "date", sorter: "date", align: "center"},
                         {title: "Merchant", field: "merchant"},
-                        {title: "Amount", field: "amount", bottomCalc: "sum"},
+                        {title: "Amount", field: "amount", bottomCalc: "sum", bottomCalcParams: {precision: 2}},
                         {
                             title: "Category",
                             field: "category",
@@ -75,10 +74,10 @@
                         table.setFilter(filter, typeVal, valueEl.value);
                     }
                 }
+
                 document.getElementById("filter-field").addEventListener("change", updateFilter);
                 document.getElementById("filter-type").addEventListener("change", updateFilter);
                 document.getElementById("filter-value").addEventListener("keyup", updateFilter);
-
             </script>
         </form>
     {% endblock %}

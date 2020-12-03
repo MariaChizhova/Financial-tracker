@@ -49,7 +49,7 @@ def display_table(request, table: list):
         dj_file = File(file)
         categories = []
         for line in table:
-            line['amount'] = line['amount'].strip(' ').strip('"')
+            line['amount'] = float(line['amount'].strip(' ').strip('"'))
         for line in dj_file:
             categories.append({"label": line[:-1],
                                "value": line[:-1].replace('&ensp;', '')})
