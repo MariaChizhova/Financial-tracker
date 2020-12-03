@@ -3,10 +3,10 @@
     {% block content %}
         <form method="POST">
             {% csrf_token %}
-            <link href="https://unpkg.com/tabulator-tables@4.8.4/dist/css/tabulator.min.css" rel="stylesheet">
+            <link href="https://unpkg.com/tabulator-tables@4.9/dist/css/tabulator.min.css" rel="stylesheet">
             <script type="text/javascript"
-                    src="https://unpkg.com/tabulator-tables@4.8.4/dist/js/tabulator.min.js"></script>
-            <link href="https://unpkg.com/tabulator-tables@4.8.4/dist/css/tabulator_simple.min.css" rel="stylesheet">
+                    src="https://unpkg.com/tabulator-tables@4.9/dist/js/tabulator.min.js"></script>
+            <link href="https://unpkg.com/tabulator-tables@4.9/dist/css/tabulator_simple.min.css" rel="stylesheet">
             {#            <script type="text/javascript"#}
             {#                    src="https://unpkg.com/tabulator-tables@4.0.5/dist/js/tabulator.min.js"></script>#}
             <div>
@@ -32,6 +32,7 @@
             <div id="example-table"></div>
             <div>
                 <button id="save">Save</button>
+                <button id="filter-clear">Clear</button>
             </div>
             <script>
                 var table = new Tabulator("#example-table", {
@@ -77,6 +78,7 @@
                 document.getElementById("filter-field").addEventListener("change", updateFilter);
                 document.getElementById("filter-type").addEventListener("change", updateFilter);
                 document.getElementById("filter-value").addEventListener("keyup", updateFilter);
+
             </script>
         </form>
     {% endblock %}

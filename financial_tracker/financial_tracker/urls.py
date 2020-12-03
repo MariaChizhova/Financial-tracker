@@ -29,4 +29,5 @@ urlpatterns = [
     url('save_cat/', main_views.save_categories),
     url('categories/', main_views.categories, name='categories'),
     url('display_charts/', main_views.display_charts),
+    url('display_main/', main_views.display_main, name='display_main'),
 ]

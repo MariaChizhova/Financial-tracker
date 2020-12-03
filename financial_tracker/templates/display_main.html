@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% if user.is_authenticated %}
+    {% block content %}
+        <form method="POST">
+            {% csrf_token %}
+            <script>const monthNames = ["January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"
+            ];
+            const d = new Date();
+            var month = monthNames[d.getMonth() - 1];
+            document.write("<h2> Analytics for " + month + "<\h2>");
+            </script>
+        </form>
+    {% endblock %}
+{% else %}
+    <p>User doesn't authenticated</p>
+{% endif %}

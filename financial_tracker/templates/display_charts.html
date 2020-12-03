@@ -62,51 +62,33 @@
         window.myPie = new Chart(ctx, config);
     };
 
-    $(function () {
-
-        var $BarChart = $("#bar-chart");
-
-        var ctx = $BarChart[0].getContext("2d");
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: {{ months|safe }},
-                datasets: [{
-                    label: categories[0],
-                    data: data[categories[0]],
-                    backgroundColor: graphColors[0],
-                },
-                    {
-                        label: categories[1],
-                        data: data[categories[1]],
-                        backgroundColor: graphColors[1],
-                    },
-                    {
-                        label: categories[2],
-                        data: data[categories[2]],
-                        backgroundColor: graphColors[2],
-                    },
-                    {
-                        label: categories[3],
-                        data: data[categories[3]],
-                        backgroundColor: graphColors[3],
-                    },
-                ]
-            },
-            options: {
-                responsive: true,
-                legend: false,
-                scales: {
-                    xAxes: [{
-                        stacked: true
-                    }],
-                    yAxes: [{
-                        stacked: true
-                    }]
-                }
+    var $BarChart = $("#bar-chart");
+    var ctx = $BarChart[0].getContext("2d");
+    var myBarChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {{ months|safe }},
+        },
+        options: {
+            responsive: true,
+            legend: false,
+            scales: {
+                xAxes: [{
+                    stacked: true
+                }],
+                yAxes: [{
+                    stacked: true
+                }]
             }
-        });
-
+        }
     });
+    for (let i = 0; i < categories.length; i++) {
+        myBarChart.data.datasets.push({
+            label: categories[i],
+            data: data[categories[i]],
+            backgroundColor: graphColors[i],
+        });
+    }
+    window.myBarChart.update();
 
 </script>
