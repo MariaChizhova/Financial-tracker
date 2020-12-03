@@ -24,7 +24,7 @@
         color: black;
     }
 
-    .active {
+    .topnav-active {
         background-color: #4CAF50;
     }
 
@@ -35,7 +35,7 @@
 </style>
 
 <div class="topnav">
-    <a class="active" href="#">{{ user }} </a>
+    <a class="topnav-active" href='{% url 'display_main' %}'>{{ user }} </a>
     <a href='{% url 'categories' %}'>Categories</a>
     <a href='{% url 'choose_purse' %}'>Choose purse</a>
     <div class="topnav-right">

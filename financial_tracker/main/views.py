@@ -7,15 +7,11 @@ from django.http import HttpResponse
 from django.shortcuts import render, redirect
 import json as simplejson
 from django.core.files import File
-import csv
-import io
 
-from django.views.decorators.csrf import csrf_exempt, csrf_protect
+from django.views.decorators.csrf import csrf_exempt
 
 from main.models import Purse, Currency, Transaction, Category
-from django.contrib.auth.models import User
-
-from django import forms
+from decimal import Decimal
 
 
 def signup(request):
@@ -56,6 +52,8 @@ def transactions_table(request, table: list):
     with open(f"data/categories/{request.user.id}.txt", "r") as file:
         dj_file = File(file)
         categories = []
+        for line in table:
+            line['amount'] = line['amount'].strip(' ').strip('"')
         for line in dj_file:
             categories.append({"label": line[:-1],
                                "value": line[:-1].replace('&ensp;', '')})
@@ -178,3 +176,24 @@ def save_categories(request):
                 dj_file = File(file)
                 dj_file.write(request.body)
     return HttpResponse("OK")
+
+
+def display_charts(request):
+    months = ["January", "February", "March", "April", "May", "June",
+              "July", "August", "September", "October", "November", "December"]
+    queryset_categories = {"Food": [10500, 22456, 33454, 42355, 12543, 2134, 34534, 15437, 12345, 24351, 25160, 23610],
+                           "Transport": [3234, 2344, 3454, 4566, 4883, 9362, 1234, 5430, 4235, 5423, 6463, 5466],
+                           "Clothes": [1345, 3645, 3245, 6375, 3255, 4576, 2393, 5678, 4974, 3957, 5848, 9982],
+                           "Medicine": [1038, 982, 1494, 973, 1245, 1774, 1948, 1737, 3773, 4948, 4345, 2734], }
+
+    total_sum = []
+    for item in queryset_categories.values():
+        total_sum.append(sum(item))
+
+    return render(request, 'display_charts.html', {'total_sum': total_sum,
+                                                   'months': months, 'categories': categories,
+                                                   'data': queryset_categories})
+
+
+def display_main(request):
+    return render(request, 'display_main.html')
