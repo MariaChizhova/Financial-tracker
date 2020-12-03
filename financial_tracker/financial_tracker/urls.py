@@ -20,12 +20,13 @@ from main import views as main_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('django.contrib.auth.urls')),
     url('signup/', main_views.signup),
-    url('choose_purse/', main_views.choose_purse),
-    url('display_table/', main_views.display_table),
+    url('choose_purse/', main_views.choose_purse, name="choose_purse"),
+    # url('display_table/', main_views.display_table),
     path('transactions/<int:purse_id>', main_views.transactions),
     path('upload_transactions/<int:purse_id>', main_views.upload_transactions),
+    path('save_transactions/<int:purse_id>', main_views.save_transactions),
     url('save_cat/', main_views.save_categories),
-    url('categories/', main_views.categories),
+    url('categories', main_views.categories, name="categories"),
+    path('', include('django.contrib.auth.urls')),
 ]

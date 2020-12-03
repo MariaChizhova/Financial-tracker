@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 import datetime
-import json
+import simplejson
 from django.core.serializers.json import DjangoJSONEncoder
 
 
@@ -43,10 +43,9 @@ class Category(models.Model):
 
 class Transaction(models.Model):
     purse = models.ForeignKey(Purse, on_delete=models.CASCADE)
-    # category = models.ForeignKey(Category, default=0, on_delete=models.CASCADE)
-    category = models.TextField()
+    category = models.ForeignKey(Category, on_delete=models.CASCADE)
     date = models.DateField(default=datetime.date.today)
-    amount = models.IntegerField()
+    amount = models.DecimalField(max_digits=8, decimal_places=2)
     merchant = models.TextField()
 
     @staticmethod
@@ -55,7 +54,22 @@ class Transaction(models.Model):
         table = []
         for transaction in query:
             table.append({'id': transaction.id,
-                          'date': json.dumps(transaction.date, cls=DjangoJSONEncoder),
+                          'date': str(transaction.date),
                           'merchant': transaction.merchant,
-                          'amount': transaction.amount})
+                          'category': transaction.category.name,
+                          'amount': float(transaction.amount)})
         return table
+
+    @staticmethod
+    def save_transactions(json_data, purse_id, user):
+        transactions_dict = simplejson.loads(json_data)
+
+        for transaction in transactions_dict:
+            if transaction['add_transaction'] and transaction['category']:
+                print(transaction['date'][-4:] + "-" + transaction['date'][:2] + "-" + transaction['date'][3:-5])
+                Transaction.objects.create(amount=transaction['amount'],
+                                           merchant=transaction['merchant'],
+                                           date=transaction['date'],
+                                           category=Category.objects.get(user=user,
+                                                                         name=transaction['category']),
+                                           purse=Purse.objects.get(id=purse_id))

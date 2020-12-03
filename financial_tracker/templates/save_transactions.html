@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block content %}
+{% if user.is_authenticated %}
+        <link href="https://unpkg.com/tabulator-tables@4.8.4/dist/css/tabulator.min.css" rel="stylesheet">
+        <script type="text/javascript"
+                src="https://unpkg.com/tabulator-tables@4.8.4/dist/js/tabulator.min.js"></script>
+        <link href="https://unpkg.com/tabulator-tables@4.8.4/dist/css/tabulator_simple.min.css" rel="stylesheet">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.0/jquery.min.js"></script>
+
+        <div id="example-table"></div>
+
+        <form method="POST" id="save_transactions">
+            {% csrf_token %}
+            <input type="hidden" name="saved_transactions" id="saved_transactions">
+            <button id="save" >Save</button>
+        </form>
+        <div>
+        </div>
+
+        <script>
+            var table = new Tabulator("#example-table", {
+                height: '80%',
+                pagination: "local",
+                paginationSize: 36,
+                movableColumns: true,
+                layout: "fitColumns",
+                columns: [
+                    {title: "Date", field: "date", sorter: "date", align: "center"},
+                    {title: "Merchant", field: "merchant"},
+                    {title: "Amount", field: "amount"},
+                    {
+                        title: "Category",
+                        field: "category",
+                        editor: "select",
+                        editorParams: {values: {{ categories|safe }}},
+                        cellEditing:function(cell){
+                            cell.getRow().update({"add_transaction": true});
+                        },
+                    },
+                    {title:"Add transaction", field:"add_transaction",formatter:"tick",
+                        cellClick: function(ev, cell){
+                          cell.setValue(!cell.getValue());
+                        }}
+                    ],
+            });
+
+            table.setData({{tabledata|safe}});
+
+            $('#save').on('click', function () {
+                $("#saved_transactions").val(JSON.stringify(table.getData(), (k, v) => v === undefined ? null : v))
+            });
+        </script>
+{% else %}
+    <p>User doesn't authenticated</p>
+{% endif %}
+{% endblock %}

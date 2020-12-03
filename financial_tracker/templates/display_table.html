@@ -1,41 +1,44 @@
 {% extends 'base.html' %}
+{% block content %}
 {% if user.is_authenticated %}
-    {% block content %}
-        <form method="POST">
-            {% csrf_token %}
-            <link href="https://unpkg.com/tabulator-tables@4.8.4/dist/css/tabulator.min.css" rel="stylesheet">
-            <script type="text/javascript"
-                    src="https://unpkg.com/tabulator-tables@4.8.4/dist/js/tabulator.min.js"></script>
-            <link href="https://unpkg.com/tabulator-tables@4.8.4/dist/css/tabulator_simple.min.css" rel="stylesheet">
-            {#            <script type="text/javascript"#}
-            {#                    src="https://unpkg.com/tabulator-tables@4.0.5/dist/js/tabulator.min.js"></script>#}
-            <div id="example-table"></div>
-            <script>
-                var table = new Tabulator("#example-table", {
-                    height: '90%',
-                    pagination: "local",
-                    paginationSize: 36,
-                    movableColumns: true,
-                    layout: "fitColumns",
-                    columns: [
-                        {title: "Date", field: "date", sorter: "date", align: "center"},
-                        {title: "Merchant", field: "merchant"},
-                        {title: "Amount", field: "amount"},
-                        {
-                            title: "Category",
-                            field: "category",
-                            editor: "select",
-                            editorParams: {values: {{ categories|safe }}}
-                        },
-                    ],
-                });
-                table.setData({{tabledata|safe}});
-            </script>
-            <div>
-                <button id="save">Save</button>
-            </div>
-        </form>
-    {% endblock %}
+    <link href="https://unpkg.com/tabulator-tables@4.8.4/dist/css/tabulator.min.css" rel="stylesheet">
+    <script type="text/javascript"
+            src="https://unpkg.com/tabulator-tables@4.8.4/dist/js/tabulator.min.js"></script>
+    <link href="https://unpkg.com/tabulator-tables@4.8.4/dist/css/tabulator_simple.min.css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.0/jquery.min.js"></script>
+
+    <div id="example-table"></div>
+
+    <form method="POST">
+        {% csrf_token %}
+        <div>
+            <input name="upload_transactions" type="submit" value="Upload transactions"/>
+        </div>
+    </form>
+
+    <form method="POST">
+        {% csrf_token %}
+        <div>
+            <input name="edit_transactions" type="submit" value="Edit transactions"/>
+        </div>
+    </form>
+    <script>
+        var table = new Tabulator("#example-table", {
+            pagination: "local",
+            paginationSize: 36,
+            movableColumns: true,
+            layout: "fitColumns",
+            columns: [
+                {title: "Date", field: "date", sorter: "date", align: "center"},
+                {title: "Merchant", field: "merchant"},
+                {title: "Amount", field: "amount"},
+                { title: "Category", field: "category"},
+                ],
+        });
+
+        table.setData({{tabledata|safe}});
+    </script>
 {% else %}
     <p>User doesn't authenticated</p>
 {% endif %}
+{% endblock %}

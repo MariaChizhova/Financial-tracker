@@ -1,3 +1,6 @@
+import datetime
+import time
+
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import UserCreationForm
 from django.http import HttpResponse
@@ -48,7 +51,8 @@ def choose_purse(request):
 
 
 # type(table): [{id, date, merchant, amount}]
-def display_table(request, table: list):
+# def display_table(request, table: list):
+def transactions_table(request, table: list):
     with open(f"data/categories/{request.user.id}.txt", "r") as file:
         dj_file = File(file)
         categories = []
@@ -56,14 +60,27 @@ def display_table(request, table: list):
             categories.append({"label": line[:-1],
                                "value": line[:-1].replace('&ensp;', '')})
 
-    return render(request, 'display_table.html', {'tabledata': simplejson.dumps(table), 'categories': categories})
+    # return render(request, 'display_table.html', {'tabledata': simplejson.dumps(table), 'categories': categories})
+    return {'tabledata': simplejson.dumps(table), 'categories': categories}
 
 
 def transactions(request, purse_id):
-    return display_table(request, Transaction.get_by_purse_id(purse_id))
+    if request.method == 'POST':
+        if 'upload_transactions' in request.POST:
+            return redirect(f'/upload_transactions/{purse_id}')
+        if 'edit_transactions' in request.POST:
+            print("edit_transactions")
+    sent_data = transactions_table(request, Transaction.get_by_purse_id(purse_id))
+    return render(request, 'display_table.html', sent_data)
 
 
 def handle_csv_file(file, latest_id):
+    def remove_quotes(s: str):
+        return s[1:-1]
+
+    def convert_date(date: str) -> str:
+        return date[-4:] + "-" + date[3:-5] + "-" + date[:2]
+
     transactions = file.read().decode('utf-8').split('\r\n')
     dict_list = []
     id = latest_id
@@ -73,22 +90,39 @@ def handle_csv_file(file, latest_id):
         if len(fields) < 4:
             continue
         dict_list.append({'id': id,
-                          'date': fields[0],
-                          'merchant': fields[3],
-                          'amount': fields[2]})
+                          'date': convert_date(fields[0]),
+                          'merchant': remove_quotes(fields[3]),
+                          'amount': float(remove_quotes(fields[2]))})
     return dict_list
 
 
 def upload_transactions(request, purse_id):
     if request.method == 'POST':
+        # Order: 3
+        # save transactions to database
+        if not request.FILES:
+            Transaction.save_transactions(json_data=request.POST['saved_transactions'],
+                                          purse_id=purse_id,
+                                          user=request.user)
+
+            return redirect(f'/transactions/{purse_id}')
+
+        # Order: 2
+        # read transactions from file
         try:
             latest_id = Transaction.objects.filter(purse=purse_id).latest('id').id
         except:
             latest_id = 0
 
         dict_list = handle_csv_file(request.FILES['input_file'], latest_id)
-        return display_table(request, dict_list)
 
+        sent_data = transactions_table(request, dict_list)
+        sent_data['purse_id'] = purse_id
+
+        return render(request, 'save_transactions.html', sent_data)
+
+    # Order: 1
+    # get upload file form
     return render(request, 'upload_transactions.html')
 
 
@@ -138,7 +172,6 @@ def categories(request):
 
 @csrf_exempt
 def save_categories(request):
-    print('sas')
     if request.is_ajax():
         if request.method == 'POST':
             with open(f"data/categories/{request.user.id}.txt", "wb") as file:
