@@ -1,4 +1,6 @@
-<h2>Graphics</h2>
+{% extends 'base.html' %}
+{% block content %}
+<h1>Graphics</h1>
 <div id="container" style="width: 75%;">
     <canvas id="pie-chart"></canvas>
 </div>
@@ -92,3 +94,4 @@
     window.myBarChart.update();
 
 </script>
+{% endblock %}

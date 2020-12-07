@@ -4,20 +4,12 @@
     <h1>Choose purse</h1>
     <form method="POST">
         {% csrf_token %}
-        {% for n in purses_names %}
+        {% for id, name in purses.items %}
             <div>
-            <input type="radio" value={{ n }} name="purse" />
-            <label for={{ n }}>{{ n }}</label>
+            <a href='{% url 'transactions' purse_id=id %}'> {{ name }}</a>
             </div>
         {% endfor %}
-        <h2>Create purse</h2>
-        <input type="text" name="purse_name"/>
-        <select name="currency">
-            {% for n in currencies_names %}
-                <option value={{ n }}>{{ n }}</option>
-            {% endfor %}
-        </select>
-        <input type="submit"/>
+        <p>Create purse <a href='{% url 'create_purse' %}'>here</a></p>
     </form>
 {% endblock %}
 {% else %}

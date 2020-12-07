@@ -31,6 +31,11 @@ def signup(request):
 
 
 def choose_purse(request):
+    args = {'purses': Purse.get_dict_id_name(user=request.user)}
+    return render(request, 'choose_purse.html', args)
+
+
+def create_purse(request):
     if request.method == 'POST':
         if request.POST['purse_name']:
             purse = Purse()
@@ -38,12 +43,10 @@ def choose_purse(request):
             purse.currency = Currency.objects.filter(name=request.POST['currency'])[0]
             purse.user = request.user
             purse.save()
-        else:
-            return redirect(f'/transactions/{Purse.get_purse_id(request.POST["purse"], request.user)}')
+            return redirect(f'/transactions/{purse.id}')
 
-    args = {'currencies_names': Currency.names_list(),
-            'purses_names': Purse.names_list(user=request.user)}
-    return render(request, 'choose_purse.html', args)
+    args = {'currencies_names': Currency.names_list()}
+    return render(request, 'create_purse.html', args)
 
 
 # type(table): [{id, date, merchant, amount}]
@@ -52,8 +55,8 @@ def transactions_table(request, table: list):
     with open(f"data/categories/{request.user.id}.txt", "r") as file:
         dj_file = File(file)
         categories = []
-        for line in table:
-            line['amount'] = line['amount'].strip(' ').strip('"')
+        # for line in table:
+        #     line['amount'] = float(line['amount'].strip(' ').strip('"'))
         for line in dj_file:
             categories.append({"label": line[:-1],
                                "value": line[:-1].replace('&ensp;', '')})
@@ -62,6 +65,7 @@ def transactions_table(request, table: list):
     return {'tabledata': simplejson.dumps(table), 'categories': categories}
 
 
+# show transactions in purse
 def transactions(request, purse_id):
     if request.method == 'POST':
         if 'upload_transactions' in request.POST:
@@ -69,32 +73,48 @@ def transactions(request, purse_id):
         if 'edit_transactions' in request.POST:
             print("edit_transactions")
     sent_data = transactions_table(request, Transaction.get_by_purse_id(purse_id))
+    sent_data['purse_name'] = Purse.objects.get(id=purse_id).name
     return render(request, 'display_table.html', sent_data)
 
 
-def handle_csv_file(file, latest_id):
-    def remove_quotes(s: str):
-        return s[1:-1]
-
-    def convert_date(date: str) -> str:
-        return date[-4:] + "-" + date[3:-5] + "-" + date[:2]
-
-    transactions = file.read().decode('utf-8').split('\r\n')
-    dict_list = []
-    id = latest_id
-    for transaction in transactions:
-        id += 1
-        fields = transaction.split(',')
-        if len(fields) < 4:
-            continue
-        dict_list.append({'id': id,
-                          'date': convert_date(fields[0]),
-                          'merchant': remove_quotes(fields[3]),
-                          'amount': float(remove_quotes(fields[2]))})
-    return dict_list
-
-
 def upload_transactions(request, purse_id):
+
+    def handle_csv_file(file, latest_id, bank_name):
+        def remove_quotes(s: str):
+            return s.replace('"', '')
+
+        def str_money_to_float(money: str):
+            return float(money.replace(',', '.').replace('"', ''))
+
+        def convert_date(date: str) -> str:
+            print(date)
+            date = remove_quotes(date)
+            return date[-4:] + "-" + date[3:-5] + "-" + date[:2]
+
+        if bank_name == 'tinkoff':
+            col_num = {'date': 1, 'merchant': 11, 'amount': 4}
+            character_set = 'cp1251'
+            fields_sep = ';'
+
+        elif bank_name == 'some_english_bank':
+            col_num = {'date': 0, 'merchant': 3, 'amount': 2}
+            character_set = 'utf-8'
+            fields_sep = ','
+
+        transactions = file.read().decode(character_set).split('\r\n')
+        dict_list = []
+        id = latest_id
+        for transaction in transactions[1:]:
+            id += 1
+            fields = transaction.split(fields_sep)
+            if len(fields) < 4:
+                continue
+            dict_list.append({'id': id,
+                              'date': convert_date(fields[col_num['date']]),
+                              'merchant': remove_quotes(fields[col_num['merchant']]),
+                              'amount': str_money_to_float(fields[col_num['amount']])})
+        return dict_list
+
     if request.method == 'POST':
         # Order: 3
         # save transactions to database
@@ -112,7 +132,7 @@ def upload_transactions(request, purse_id):
         except:
             latest_id = 0
 
-        dict_list = handle_csv_file(request.FILES['input_file'], latest_id)
+        dict_list = handle_csv_file(request.FILES['input_file'], latest_id, request.POST['bank_name'])
 
         sent_data = transactions_table(request, dict_list)
         sent_data['purse_id'] = purse_id
@@ -181,14 +201,17 @@ def save_categories(request):
 def display_charts(request):
     months = ["January", "February", "March", "April", "May", "June",
               "July", "August", "September", "October", "November", "December"]
-    queryset_categories = {"Food": [10500, 22456, 33454, 42355, 12543, 2134, 34534, 15437, 12345, 24351, 25160, 23610],
-                           "Transport": [3234, 2344, 3454, 4566, 4883, 9362, 1234, 5430, 4235, 5423, 6463, 5466],
-                           "Clothes": [1345, 3645, 3245, 6375, 3255, 4576, 2393, 5678, 4974, 3957, 5848, 9982],
-                           "Medicine": [1038, 982, 1494, 973, 1245, 1774, 1948, 1737, 3773, 4948, 4345, 2734], }
+    # queryset_categories = {"Food": [10500, 22456, 33454, 42355, 12543, 2134, 34534, 15437, 12345, 24351, 25160, 23610],
+    #                        "Transport": [3234, 2344, 3454, 4566, 4883, 9362, 1234, 5430, 4235, 5423, 6463, 5466],
+    #                        "Clothes": [1345, 3645, 3245, 6375, 3255, 4576, 2393, 5678, 4974, 3957, 5848, 9982],
+    #                        "Medicine": [1038, 982, 1494, 973, 1245, 1774, 1948, 1737, 3773, 4948, 4345, 2734], }
+    queryset_categories = Transaction.amount_in_year(user=request.user,
+                                                     year=datetime.datetime.now().year)
+    print(queryset_categories)
 
     total_sum = []
     for item in queryset_categories.values():
-        total_sum.append(sum(item))
+        total_sum.append(round(sum(item), 2))
 
     return render(request, 'display_charts.html', {'total_sum': total_sum,
                                                    'months': months, 'categories': categories,

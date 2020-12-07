@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 import datetime
 import simplejson
+import decimal
 from django.core.serializers.json import DjangoJSONEncoder
 
 
@@ -23,11 +24,11 @@ class Purse(models.Model):
     currency = models.ForeignKey(Currency, on_delete=models.CASCADE)
 
     @staticmethod
-    def names_list(user):
-        names = []
+    def get_dict_id_name(user):
+        result = {}
         for p in Purse.objects.filter(user=user):
-            names.append(p.name)
-        return names
+            result[p.id] = p.name
+        return result
 
     @staticmethod
     def get_purse_id(name, user):
@@ -35,7 +36,6 @@ class Purse(models.Model):
 
 
 class Category(models.Model):
-    name = models.TextField()
     name = models.TextField()
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, default="")
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -59,6 +59,46 @@ class Transaction(models.Model):
                           'category': transaction.category.name,
                           'amount': float(transaction.amount)})
         return table
+
+    # month: [1..12]
+    # type(result): {category: amount}
+    @staticmethod
+    def amount_in_month(user, year, month):
+        year = str(year)
+        month = str(month)
+
+        if len(month) == 1:
+            month = '0' + month
+
+        result = {}
+        for category in Category.objects.filter(user=user):
+            result[category.name] = 0
+
+        # TODO: change to aggregate query
+        query = Transaction.objects.filter(purse__user=user, date__year=year, date__month=month)
+
+        for transaction in query:
+            category_name = transaction.category.name
+            amount = transaction.amount
+            result[category_name] += amount
+
+        for key, value in result.items():
+            result[key] = float(value)
+
+        return result
+
+    # type(result): {category: [amount_in_month]}
+    @staticmethod
+    def amount_in_year(user, year):
+        result = {}
+        for month in range(1, 12 + 1):
+            amount_in_month = Transaction.amount_in_month(user, year, month)
+            for category, amount in amount_in_month.items():
+                if category not in result:
+                    result[category] = []
+                result[category].append(amount)
+
+        return result
 
     @staticmethod
     def save_transactions(json_data, purse_id, user):

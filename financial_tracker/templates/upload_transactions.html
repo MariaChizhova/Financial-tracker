@@ -6,6 +6,13 @@
         {% csrf_token %}
         <input name="input_file" type="file" accept=".csv">
         <button id="upload">Upload</button>
+        <div>
+            <p>Select bank:</p>
+            <select name="bank_name">
+                <option value="tinkoff">tinkoff</option>
+                <option value="some_english_bank">some_english_bank</option>
+            </select>
+        </div>
     </form>
     {% endblock %}
 {% else %}
