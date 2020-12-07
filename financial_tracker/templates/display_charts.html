@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Graphics</h1>
+<div id="container" style="width: 75%;">
+    <canvas id="pie-chart"></canvas>
+</div>
+<div id="container" style="width: 75%;">
+    <canvas id="bar-chart"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script>
+    var graphColors = [], graphOutlines = [], hoverColor = [];
+    var i = 0;
+    while (i <= 'labels'.length) {
+        var randomR = Math.floor((Math.random() * 130) + 100);
+        var randomG = Math.floor((Math.random() * 130) + 100);
+        var randomB = Math.floor((Math.random() * 130) + 100);
+
+        var graphBackground = "rgb("
+            + randomR + ", "
+            + randomG + ", "
+            + randomB + ")";
+        graphColors.push(graphBackground);
+
+        var graphOutline = "rgb("
+            + (randomR - 80) + ", "
+            + (randomG - 80) + ", "
+            + (randomB - 80) + ")";
+        graphOutlines.push(graphOutline);
+
+        var hoverColors = "rgb("
+            + (randomR + 25) + ", "
+            + (randomG + 25) + ", "
+            + (randomB + 25) + ")";
+        hoverColor.push(hoverColors);
+
+        i++;
+    }
+    var data = {{ data|safe }};
+    var categories = Object.keys(data);
+
+    var config = {
+        type: 'pie',
+        data: {
+            datasets: [{
+                data: {{ total_sum|safe }},
+                backgroundColor: graphColors,
+                label: 'total_sum'
+            }],
+            labels: categories
+        },
+        options: {
+            responsive: true,
+            legend: {
+                position: 'right',
+            },
+        }
+    };
+
+    window.onload = function () {
+        var ctx = document.getElementById('pie-chart').getContext('2d');
+        window.myPie = new Chart(ctx, config);
+    };
+
+    var $BarChart = $("#bar-chart");
+    var ctx = $BarChart[0].getContext("2d");
+    var myBarChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {{ months|safe }},
+        },
+        options: {
+            responsive: true,
+            legend: false,
+            scales: {
+                xAxes: [{
+                    stacked: true
+                }],
+                yAxes: [{
+                    stacked: true
+                }]
+            }
+        }
+    });
+    for (let i = 0; i < categories.length; i++) {
+        myBarChart.data.datasets.push({
+            label: categories[i],
+            data: data[categories[i]],
+            backgroundColor: graphColors[i],
+        });
+    }
+    window.myBarChart.update();
+
+</script>
+{% endblock %}

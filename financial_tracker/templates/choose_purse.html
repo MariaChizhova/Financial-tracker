@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% if user.is_authenticated %}
+{% block content %}
+    <h1>Choose purse</h1>
+    <form method="POST">
+        {% csrf_token %}
+        {% for id, name in purses.items %}
+            <div>
+            <a href='{% url 'transactions' purse_id=id %}'> {{ name }}</a>
+            </div>
+        {% endfor %}
+        <p>Create purse <a href='{% url 'create_purse' %}'>here</a></p>
+    </form>
+{% endblock %}
+{% else %}
+    <p>User doesn't authenticated</p>
+{% endif %}

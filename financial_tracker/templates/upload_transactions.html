@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% if user.is_authenticated %}
+    {% block content %}
+    <h1>Upload transactions</h1>
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input name="input_file" type="file" accept=".csv">
+        <button id="upload">Upload</button>
+        <div>
+            <p>Select bank:</p>
+            <select name="bank_name">
+                <option value="tinkoff">tinkoff</option>
+                <option value="some_english_bank">some_english_bank</option>
+            </select>
+        </div>
+    </form>
+    {% endblock %}
+{% else %}
+    <p>User doesn't authenticated</p>
+{% endif %}
