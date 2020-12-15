@@ -1,97 +1,139 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>Graphics</h1>
-<div id="container" style="width: 75%;">
-    <canvas id="pie-chart"></canvas>
-</div>
-<div id="container" style="width: 75%;">
-    <canvas id="bar-chart"></canvas>
-</div>
+    <h2>Graphics</h2>
+    <div id="pie-chart" style="width: 40%;"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-<script>
-    var graphColors = [], graphOutlines = [], hoverColor = [];
-    var i = 0;
-    while (i <= 'labels'.length) {
-        var randomR = Math.floor((Math.random() * 130) + 100);
-        var randomG = Math.floor((Math.random() * 130) + 100);
-        var randomB = Math.floor((Math.random() * 130) + 100);
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/highcharts-3d.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/modules/export-data.js"></script>
+    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
 
-        var graphBackground = "rgb("
-            + randomR + ", "
-            + randomG + ", "
-            + randomB + ")";
-        graphColors.push(graphBackground);
+    <div id="bar-chart" style="min-width: 400px; height: 400px; margin: 0 auto"></div>
 
-        var graphOutline = "rgb("
-            + (randomR - 80) + ", "
-            + (randomG - 80) + ", "
-            + (randomB - 80) + ")";
-        graphOutlines.push(graphOutline);
+    <form id="form">
+        <label for="start">Start month:</label>
+        <input type="month" id="start" name="start"
+               min="2000-01" value="2020-12">
 
-        var hoverColors = "rgb("
-            + (randomR + 25) + ", "
-            + (randomG + 25) + ", "
-            + (randomB + 25) + ")";
-        hoverColor.push(hoverColors);
+        <label for="end">End month:</label>
+        <input type="month" id="end" name="end"
+               min="2000-01" value="2020-12">
+        <input type="submit"/>
+    </form>
 
-        i++;
-    }
-    var data = {{ data|safe }};
-    var categories = Object.keys(data);
-
-    var config = {
-        type: 'pie',
-        data: {
-            datasets: [{
-                data: {{ total_sum|safe }},
-                backgroundColor: graphColors,
-                label: 'total_sum'
-            }],
-            labels: categories
-        },
-        options: {
-            responsive: true,
-            legend: {
-                position: 'right',
-            },
-        }
-    };
-
-    window.onload = function () {
-        var ctx = document.getElementById('pie-chart').getContext('2d');
-        window.myPie = new Chart(ctx, config);
-    };
-
-    var $BarChart = $("#bar-chart");
-    var ctx = $BarChart[0].getContext("2d");
-    var myBarChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: {{ months|safe }},
-        },
-        options: {
-            responsive: true,
-            legend: false,
-            scales: {
-                xAxes: [{
-                    stacked: true
-                }],
-                yAxes: [{
-                    stacked: true
-                }]
+    <script>
+        form.addEventListener("submit", function (e) {
+            e.preventDefault();
+            var data = new FormData(form);
+            for (const [name, value] of data) {
+                console.log(name, value);
             }
-        }
-    });
-    for (let i = 0; i < categories.length; i++) {
-        myBarChart.data.datasets.push({
-            label: categories[i],
-            data: data[categories[i]],
-            backgroundColor: graphColors[i],
-        });
-    }
-    window.myBarChart.update();
+        })
+    </script>
 
-</script>
+    <script>
+        var categories = Object.keys({{data | safe}});
+        var total_sum = {{ total_sum | safe }};
+        var series_pie = [];
+        for (var i = 0; i < categories.length && i < total_sum.length; i++) {
+            var item = {name: categories[i], y: total_sum[i]};
+            series_pie.push(item);
+        }
+        var chart1 = new Highcharts.chart('pie-chart', {
+            chart: {
+                type: 'pie',
+                options3d: {
+                    enabled: true,
+                    alpha: 45,
+                    beta: 0
+                }
+            },
+            title: {
+                text: 'Pie chart'
+            },
+            plotOptions: {
+                pie: {
+                    allowPointSelect: true,
+                    cursor: 'pointer',
+                    depth: 35,
+                    dataLabels: {
+                        enabled: true,
+                        format: '{point.name}'
+                    },
+                    showInLegend: true
+                }
+            },
+            series: [{
+                name: 'Amount',
+                colorByPoint: true,
+                data: series_pie,
+            }]
+        });
+        var amount = {{ data | safe }};
+        var series_bar = [];
+        for (var i = 0; i < categories.length; i++) {
+            var item = {name: categories[i], data: amount[categories[i]], stack: 'expenses', stackName: 'expenses'};
+            series_bar.push(item);
+        }
+        var item = {name: 'income', data: {{ income | safe }}, stack: 'income'};
+        series_bar.push(item);
+        console.log(series_bar);
+        $(function () {
+            $('#bar-chart').highcharts({
+
+                chart: {
+                    type: 'column',
+                    options3d: {
+                        enabled: true,
+                        alpha: 0,
+                        beta: 0,
+                        viewDistance: 25,
+                        depth: 40
+                    }
+                },
+
+                title: {
+                    text: 'Bar chart'
+                },
+
+                xAxis: {
+                    labels: {
+                        skew3d: true,
+                        style: {
+                            fontSize: '16px'
+                        },
+                    },
+                    categories: {{ months | safe }},
+                },
+
+                yAxis: {
+                    allowDecimals: true,
+                    min: 0,
+                    title: {
+                        text: 'Money',
+                        skew3d: true
+                    },
+                },
+
+                tooltip: {
+                    formatter: function () {
+                        return '<b>' + this.x + '</b><br/>' +
+                            this.series.name + ': ' + this.y + '<br/>' +
+                            'Total: ' + this.point.stackTotal;
+                    }
+                },
+
+                plotOptions: {
+                    column: {
+                        stacking: 'normal'
+                    }
+                },
+                series: series_bar,
+            });
+        });
+
+    </script>
 {% endblock %}

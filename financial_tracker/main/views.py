@@ -201,21 +201,22 @@ def save_categories(request):
 def display_charts(request):
     months = ["January", "February", "March", "April", "May", "June",
               "July", "August", "September", "October", "November", "December"]
-    # queryset_categories = {"Food": [10500, 22456, 33454, 42355, 12543, 2134, 34534, 15437, 12345, 24351, 25160, 23610],
-    #                        "Transport": [3234, 2344, 3454, 4566, 4883, 9362, 1234, 5430, 4235, 5423, 6463, 5466],
-    #                        "Clothes": [1345, 3645, 3245, 6375, 3255, 4576, 2393, 5678, 4974, 3957, 5848, 9982],
-    #                        "Medicine": [1038, 982, 1494, 973, 1245, 1774, 1948, 1737, 3773, 4948, 4345, 2734], }
+    #queryset_categories = {'Food': [10500, 22456, 33454, 42355, 12543, 2134, 34534, 15437, 12345, 24351, 25160, 23610],
+    #                       'Transport': [3234, 2344, 3454, 4566, 4883, 9362, 1234, 5430, 4235, 5423, 6463, 5466],
+    #                       'Clothes': [1345, 3645, 3245, 6375, 3255, 4576, 2393, 5678, 4974, 3957, 5848, 9982],
+    #                      'Medicine': [1038, 982, 1494, 973, 1245, 1774, 1948, 1737, 3773, 4948, 4345, 2734], }
     queryset_categories = Transaction.amount_in_year(user=request.user,
                                                      year=datetime.datetime.now().year)
     print(queryset_categories)
-
     total_sum = []
     for item in queryset_categories.values():
-        total_sum.append(round(sum(item), 2))
-
+        val = round(sum(item), 2)
+        if val >= 0:
+            total_sum.append(round(sum(item), 2))
+    #income = [10500, 22456, 33454, 42355, 12543, 2134, 34534, 15437, 12345, 24351, 25160, 23610]
     return render(request, 'display_charts.html', {'total_sum': total_sum,
                                                    'months': months, 'categories': categories,
-                                                   'data': queryset_categories})
+                                                   'data': queryset_categories, 'income' : income})
 
 
 def display_main(request):
